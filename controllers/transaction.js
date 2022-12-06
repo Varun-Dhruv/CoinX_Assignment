@@ -1,4 +1,6 @@
 const axios = require("axios");
+const { validateTransaction, transactions } = require("../models/transaction");
+const { fetchEthereumDetailsfromDB } = require("./ethereumPrice");
 
 const getTransactions = async (req, res, next) => {
   try {
@@ -21,10 +23,35 @@ const getTransactions = async (req, res, next) => {
         },
       }
     );
-    res.status(200).send(result.data.result);
+    const data = result.data.result;
+    const { error } = validateTransaction(data);
+    if (error)
+      return res.status(422).send({ message: "Invalid  format", error: error });
+    await transactions.insertMany(data);
+    // await transactions(data).save();
+    return res.status(200).send(data);
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: "Internal Server Error" });
   }
 };
-module.exports = { getTransactions };
+const getAccountBalance = async (req, res, next) => {
+  try {
+    const transactionsList = await transactions.find({});
+    var balance = 0;
+    transactionsList.map((transaction) => {
+      if (transaction.from === req.params.address) {
+        balance -= Number(transaction.value);
+      } else if (transaction.to === req.params.address) {
+        balance += Number(transaction.value);
+      }
+    });
+    const ethereumValue = await fetchEthereumDetailsfromDB();
+    return res
+      .status(200)
+      .send({ etherValue: balance, priceInINR: balance / ethereumValue });
+  } catch (error) {
+    console.error(error);
+  }
+};
+module.exports = { getTransactions, getAccountBalance };
