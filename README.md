@@ -2,7 +2,7 @@
 
 ## Project Setup
 
-<li>Clone the repo<li>
+<li>Clone the repo</li>
 <li>run the command "npm install" to generate node_modules</li>
 <li>add a env file with the following variables PORT, DATABASE_URL, ETHERSCAN_API_KEY</li>
 <li>Start the development server using the command "node index.js" </li>
